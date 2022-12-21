@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Basic Page Needs
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta charset="utf-8" />
+  <title>Google Chrome Coverage CSS extrator</title>
+  <meta name="description"
+    content="A small page to extract the CSS from json created by the Coverage tab in Google Chrome." />
+  <meta name="author" content="LuandiasRJ - https://github.com/luandiasrj/" />
+
+  <!-- Mobile Specific Metas
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- FONT
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css" />
+
+  <!-- CSS
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="stylesheet" href="css/normalize.css" />
+  <link rel="stylesheet" href="css/skeleton.css" />
+
+
+  <!-- Favicon
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="icon" type="image/png" href="images/css3.png" />
+</head>
+
+<body>
+  <!-- Primary Page Layout
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <div class="container">
+    <header class="header" style="margin-top: 1em">
+      <h1>Google Chrome Coverage CSS extrator</h1>
+      <p>
+        A simple page to extract the CSS from json created by the Coverage tab
+        in Google Chrome. <br />
+        With support to responsive layouts that uses the <b>@media</b> queries
+        of CSS.
+      </p>
+    </header>
+    <hr />
+    <div class="row">
+      <div class="twelve columns">
+        <div class="Think">
+          <label>
+            <input type="checkbox" id="showcss" />
+            <span class="label-body">Show whole css</span>
+          </label>
+        </div>
+        <label for="file">Select a file</label>
+        <input type="file" id="file" accept=".json" onchange="readFile()" />
+        <!-- Checkbox -->
+
+        <pre><code id="content"></code></pre>
+      </div>
+    </div>
+    <div class="row">
+      <div class="six columns" style="text-align: center">
+        <input id="download" type="button" value="Download" onclick="download()" />
+      </div>
+      <div class="six columns">
+        <input id="copy" style="margin: 0px auto 15px auto" type="button" value="Copy to clipboard"
+          onclick="copyToClipboard()" />
+      </div>
+    </div>
+  </div>
+
+  <script src="js/index.js"></script>
+  <!-- End Document –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+</body>
+
+</html>
