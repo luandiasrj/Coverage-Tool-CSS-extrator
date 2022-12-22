@@ -1,264 +1,77 @@
 function readFile() {
-  // read json file and replace the content
-  var file = document.getElementById("file").files[0];
-  var reader = new FileReader();
-  reader.onload = function (e) {
-    var css = CoverageExtrator(e.target.result);
-
-    // Reset elements to default
-    if (document.getElementById("content").innerHTML != "") {
-      document.getElementById("content").innerHTML = "";
-      // Remove class show from copy button
-      document.getElementById("copy").classList.remove("show");
-    }
-
-    // Add show class to content parent
-    document.getElementById("content").parentElement.classList.add("show");
-
-    document.getElementById("content").innerHTML = css;
-    ShowElement("download");
-    ShowElement("copy");
-    document.getElementById("download").scrollIntoView({ behavior: "smooth" });
-    document.getElementById("file").value = "";
+  var e = document.getElementById("file").files[0],
+      t = new FileReader;
+  t.onload = function(e) {
+      var t = CoverageExtrator(e.target.result);
+      "" != document.getElementById("content").innerHTML && (document.getElementById("content").innerHTML = "", document.getElementById("copy").classList.remove("show")), document.getElementById("content").parentElement.classList.add("show"), document.getElementById("content").innerHTML = t, document.getElementById("download").classList.add("show"), document.getElementById("copy").classList.add("show"), document.getElementById("download").scrollIntoView({
+          behavior: "smooth"
+      }), document.getElementById("file").value = ""
   };
-
-  reader.readAsText(file);
-}
-
-// Download unstyled text
-function download() {
-  var text = document.getElementById("content").innerText;
-  var element = document.createElement("a");
-  element.setAttribute(
-    "href",
-    "data:text/plain;charset=utf-8," + encodeURIComponent(text)
-  );
-  element.setAttribute("download", "coverage.css");
-  element.style.display = "none";
-  document.body.appendChild(element);
-  element.click();
-  document.body.removeChild(element);
-}
-// Copy unstyled text to clipboard
-function copyToClipboard() {
-  var text = document.getElementById("content").innerText;
-  var element = document.createElement("textarea");
-  element.value = text;
-  element.setAttribute("readonly", "");
-  element.style.position = "absolute";
-  element.style.left = "-9999px";
-  document.body.appendChild(element);
-  element.select();
-  document.execCommand("copy");
-  document.body.removeChild(element);
-}
-
-// Show a message when the copy button is clicked
-const copyButton = document.getElementById("copy");
-copyButton.addEventListener("click", function () {
-  copyButton.value = "Copied!";
-  setTimeout(function () {
-    copyButton.value = "Copy to clipboard";
-  }, 2000);
-});
-
-function ShowElement(element) {
-  document.getElementById(element).classList.add("show");
-}
-
-
-function CoverageExtrator(json) {
-  var css = "";
-  var json = JSON.parse(json);
-
-  // Verify if the json key url have an css extension
-  for (var i = 0; i < json.length; i++) {
-    if (json[i].url.match(/.css$/)) {
-      // Add the css to the variable css
-      FileUrl = "  File: " + json[i].url;
-      var Repeat = "-".repeat(FileUrl.length);
-      if (document.getElementById("showcss").checked) {
-        css +=
-          "<span style='color:darkgreen'>/*" +
-          Repeat +
-          "/*\n " +
-          FileUrl +
-          "\n/*" +
-          Repeat +
-          "*/\n</span>";
-      } else {
-        css += "/*" + Repeat + "/*\n " + FileUrl + "\n/*" + Repeat + "*/\n";
-      }
-
-      Ranges = [];
-
-      // Loop through the json key ranges and add the [start and end] of the range to the array Ranges
-      for (var j = 0; j < json[i].ranges.length; j++) {
-        Ranges.push({
-          Start: json[i].ranges[j].start,
-          End: json[i].ranges[j].end,
-        });
-      }
-
-      let markedText = "";
-      let currentPositon = 0;
-      let MediaOpen = false;
-
-      for (var j = 0; j < json[i].ranges.length; j++) {
-        // Get the length of the range
-        var RgStart = json[i].ranges[j].start;
-        var RgEnd = json[i].ranges[j].end;
-        // Get the text of the range
-        rule = json[i].text.slice(currentPositon, RgStart); // Get the text before the range
-        markedText = json[i].text.slice(RgStart, RgEnd); // Get the text of the range
-        currentPositon = RgEnd; // Set the current position to the end of the range
-        OriginalRule = rule; // Save the original rule
-
-        // ==================== Text before the range ====================
-        // If Media is open, find the position of the first pair of closing curly braces with space or new line
-        if (MediaOpen) {
-          var MediaClose = rule.search(/\}\s*\}|\}\s*\n*\s*\}/);
-          // If MediaClose is smaller than 0, it means that the media is still open
-          if (MediaClose < 0) {
-            // Check if the closing curly brace comes before opening
-            var OpenBrace = rule.indexOf("{");
-            var CloseBrace = rule.indexOf("}");
-            if (OpenBrace > CloseBrace) {
-              // If the position of the first { is greater than 0, it means that the media is closed
-              // Add the text before the { to the css variable
-              MediaClose = rule.indexOf("}") - 1;
-            }
-          }
-
-          // If the position of the first }} is greater than 0, it means that the media is closed
-          if (MediaClose > 0) {
-            if (document.getElementById("showcss").checked) {
-              // Add the text before the }} to the css variable
-              css += rule.slice(0, MediaClose + 1);
-              // Add the text of } styled to the css variable
-              css += "\n<span style='color:blue'>}</span>";
-
-              rule = rule.slice(MediaClose + 2, rule.length);
-            } else {
-              css += "\n}";
-            }
-
-            MediaOpen = false;
-          }
-        }
-
-        // Check if have @media in the original rule
-        var MediaRule = OriginalRule.lastIndexOf("@media");
-
-        if (MediaRule > 0) {
-          // If MediaRule is greater than 0, it means that the rule have @media
-
-          if (MediaOpen == false) {
-            // If MediaOpen is false, it means that the media is closed
-            // Add the text before the @media to the css variable
-            if (document.getElementById("showcss").checked) {
-              before = rule.slice(0, rule.lastIndexOf("@media"));
-              css += before;
-            }
-
-            // Search for the first of curly brace after the @media
-            var OpenBrace = OriginalRule.indexOf("{", MediaRule);
-            // Count the number of curly braces between the @media and the final of the original rule, if the number of curly braces is odd, it means that the media is open
-            var Braces =
-              (
-                OriginalRule.slice(MediaRule, OriginalRule.length).match(
-                  /\{/g
-                ) || []
-              ).length -
-              (
-                OriginalRule.slice(MediaRule, OriginalRule.length).match(
-                  /\}/g
-                ) || []
-              ).length;
-            // If the number of curly braces is greater than 0, it means that the media is open
-            if (Braces != 0) {
-              mediaHeader = OriginalRule.slice(MediaRule, OpenBrace + 1);
-              if (document.getElementById("showcss").checked) {
-                css += "\n<span style='color:blue'>" + mediaHeader + "</span>";
-                afterMedia = OriginalRule.slice(OpenBrace + 1, rule.length);
-              } else {
-                css += "\n" + mediaHeader;
-              }
-
-              MediaOpen = true;
-            } else {
-              if (document.getElementById("showcss").checked) {
-                afterMedia = OriginalRule.slice(MediaRule, rule.length);
-              }
-
-              MediaOpen = false;
-            }
-            if (document.getElementById("showcss").checked) {
-              rule = afterMedia;
-            }
-          }
-        }
-
-        // Add the text to the css variable
-        if (document.getElementById("showcss").checked) {
-          css += rule;
-        }
-
-        // ==================== Marked text ====================
-        if (document.getElementById("showcss").checked) {
-          // Add the text of the range to the css variable with the style
-          css += "<span class='marked'>" + markedText + "</span>";
-        } else {
-          // Add the text of the range to the css variable with the style
-          css += markedText + "\n";
-        }
-      }
-      // ==================== Text after the last range ====================
-      // Get the text after the last range
-      var lastText = json[i].text.slice(currentPositon, json[i].text.length);
-      if (MediaOpen) {
-        // Find the position of the first pair of curly braces
-        var MediaClose = lastText.search(/\}\s*\}/);
-        if (MediaClose < 0) {
-          // Search for the position of first curly brace indexof
-          MediaClose = lastText.indexOf("}");
-        }
-
-        // If the position of the first }} is greater than 0, it means that the media is closed
-        if (MediaClose > 0) {
-          // Add the text before the }} to the css variable
-          before = lastText.slice(0, MediaClose + 1);
-          // If var before is different from just one }
-          if (before != "\n}") {
-            if (document.getElementById("showcss").checked) {
-              css += before;
-            }
-          }
-
-          if (document.getElementById("showcss").checked) {
-            // Add the text of } styled to the css variable
-            css += "\n<span style='color:blue'>}\n</span>";
-            // Add the text after the }} to the css variable
-            css += lastText.slice(MediaClose + 2, lastText.length) + "\n";
-          } else {
-            css += "}\n";
-          }
-          MediaOpen = false;
-        } else {
-          if (document.getElementById("showcss").checked) {
-            // Add the text after the last range to the css variable
-            css += lastText + "\n";
-          }
-        }
-      } else {
-        if (document.getElementById("showcss").checked) {
-          // Add the text after the last range to the css variable
-          css += lastText + "\n";
-        }
-      }
-    }
+  try {
+      t.readAsText(e)
+  } catch (n) {
+      alert("Please select a valid json file")
   }
-
-    return css;
-  
 }
+
+function download() {
+  var e = document.getElementById("content").innerText,
+      t = document.createElement("a");
+  t.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(e)), t.setAttribute("download", "coverage.css"), t.style.display = "none", document.body.appendChild(t), t.click(), document.body.removeChild(t)
+}
+
+function copyToClipboard() {
+  var e = document.getElementById("content").innerText,
+      t = document.createElement("textarea");
+  t.value = e, t.setAttribute("readonly", ""), t.style.position = "absolute", t.style.left = "-9999px", document.body.appendChild(t), document.getSelection().rangeCount > 0 && document.getSelection().removeAllRanges(), t.select(), document.execCommand("copy"), document.body.removeChild(t)
+}
+const copyButton = document.getElementById("copy");
+
+function ShowElement(e) {
+  document.getElementById(e).classList.add("show")
+}
+
+function CoverageExtrator(e) {
+  for (var t = "", e = JSON.parse(e), n = 0; n < e.length; n++)
+      if (e[n].url.match(/.css$/)) {
+          FileUrl = "  File: " + e[n].url;
+          var s = "-".repeat(FileUrl.length);
+          document.getElementById("showcss").checked ? t += "<span style='color:darkgreen'>/*" + s + "/*\n " + FileUrl + "\n/*" + s + "*/\n</span>" : t += "/*" + s + "/*\n " + FileUrl + "\n/*" + s + "*/\n", Ranges = [];
+          for (var l = 0; l < e[n].ranges.length; l++) Ranges.push({
+              Start: e[n].ranges[l].start,
+              End: e[n].ranges[l].end
+          });
+          let c = "",
+              o = 0,
+              a = !1;
+          for (var l = 0; l < e[n].ranges.length; l++) {
+              var d = e[n].ranges[l].start,
+                  r = e[n].ranges[l].end;
+              if (rule = e[n].text.slice(o, d), c = e[n].text.slice(d, r), o = r, OriginalRule = rule, a) {
+                  var i = rule.search(/\}\s*\}|\}\s*\n*\s*\}/);
+                  if (i < 0) {
+                      var h = rule.indexOf("{");
+                      h > rule.indexOf("}") && (i = rule.indexOf("}") - 1)
+                  }
+                  i > 0 && (document.getElementById("showcss").checked ? (t += rule.slice(0, i + 1), t += "\n<span style='color:blue'>}</span>", rule = rule.slice(i + 2, rule.length)) : t += "\n}", a = !1)
+              }
+              var g = OriginalRule.lastIndexOf("@media");
+              if (g > 0 && !1 == a) {
+                  document.getElementById("showcss").checked && (t += before = rule.slice(0, rule.lastIndexOf("@media")));
+                  var h = OriginalRule.indexOf("{", g);
+                  0 != (OriginalRule.slice(g, OriginalRule.length).match(/\{/g) || []).length - (OriginalRule.slice(g, OriginalRule.length).match(/\}/g) || []).length ? (mediaHeader = OriginalRule.slice(g, h + 1), document.getElementById("showcss").checked ? (t += "\n<span style='color:blue'>" + mediaHeader + "</span>", afterMedia = OriginalRule.slice(h + 1, rule.length)) : t += "\n" + mediaHeader, a = !0) : (document.getElementById("showcss").checked && (afterMedia = OriginalRule.slice(g, rule.length)), a = !1), document.getElementById("showcss").checked && (rule = afterMedia)
+              }
+              document.getElementById("showcss").checked && (t += rule), document.getElementById("showcss").checked ? t += "<span class='marked'>" + c + "</span>" : t += c + "\n"
+          }
+          var y = e[n].text.slice(o, e[n].text.length);
+          if (a) {
+              var i = y.search(/\}\s*\}/);
+              i < 0 && (i = y.indexOf("}")), i > 0 ? ("\n}" != (before = y.slice(0, i + 1)) && document.getElementById("showcss").checked && (t += before), document.getElementById("showcss").checked ? (t += "\n<span style='color:blue'>}\n</span>", t += y.slice(i + 2, y.length) + "\n") : t += "}\n", a = !1) : document.getElementById("showcss").checked && (t += y + "\n")
+          } else document.getElementById("showcss").checked && (t += y + "\n")
+      } return t
+}
+copyButton.addEventListener("click", function() {
+  copyButton.value = "Copied!", setTimeout(function() {
+      copyButton.value = "Copy to clipboard"
+  }, 2e3)
+});
