@@ -15,4 +15,4 @@
 11. The script will create a file called `coverage.css` with all the unused CSS, you can download it or copy the content to clipboard
 
 # Link to page
-https://luandiasrj.github.io/Google-Chrome-Coverage-Tool---CSS-extrator/
+https://luandiasrj.github.io/Coverage-Tool-CSS-extrator/
